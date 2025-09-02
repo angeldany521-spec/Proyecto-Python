@@ -22,5 +22,15 @@ Requisitos para correr el programa
   - `tkinter` (ya viene con Python)
   - `tqdm`
   - `send2trash` (opcional)
+ 
+Pasos:
+  1.Crea un entorno virtual(Opcional)
+  2.Ejecutar el programa: python organizador.py
+  3.Selecciona la carpeta de origen (donde están los archivos).
+  4.Selecciona la carpeta de destino (donde se organizarán).
+  5.Marca o desmarca Dry-run según quieras simular o mover realmente.
+  6.Haz clic en Organizar Archivos.
+  
+  
 
 
