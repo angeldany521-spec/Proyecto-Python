@@ -1,30 +1,17 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from pathlib import Path
+import time
 import shutil
 import os
+import threading
 
 """
 Este script organiza archivos en una carpeta destino basada en su tipo.
 Permite seleccionar una carpeta origen y destino, y ofrece opciones de simulación
 (dry-run) y recursividad.
 """
-# Reglas simples: extensión → carpeta
-RULES = {
-    "jpg": "Fotos",
-    "jpeg": "Fotos",
-    "png": "Fotos",
-    "gif": "Fotos",
-    "pdf": "Documentos",
-    "docx": "Documentos",
-    "txt": "Textos",
-    "mp3": "Música",
-    "wav": "Música",
-    "mp4": "Videos",
-    "mkv": "Videos",
-    "zip": "Comprimidos",
-    "rar": "Comprimidos",
-}
+
 
 """
 funciones principales:
@@ -49,42 +36,56 @@ según las reglas definidas. Si dry_run es True, solo simula la acción sin move
 Adicionalmente, actualiza una barra de progreso y un label de estado en la GUI.
 """
 
-def organizar_archivos(carpeta_origen, carpeta_destino, dry_run=False):
+def organizar_archivos(lista_archivos, carpeta_destino, dry_run=False):
+    
     extensiones = {
         "Documentos": [".pdf", ".docx", ".txt"],
         "Fotos": [".jpg", ".jpeg", ".png"],
         "Videos": [".mp4", ".avi"],
         "Música": [".mp3", ".wav"],
         "Comprimidos": [".zip", ".rar"],
-    } 
+    }
+    total = len(lista_archivos)
+    if total == 0:
+        root.after(0, lambda: status_label.config(text="Nada que organizar"))
+        return
+    max_total_time = 5.0
+    delay = max_total_time / total if total > 0 else 0
+    delay = min(delay, 0.3)
 
-    for archivo in os.listdir(carpeta_origen):
-        ruta_archivo = os.path.join(carpeta_origen, archivo) 
+    def procesar_archivo(i):
+        if i > total:
+            progress_var.set(100)
+            status_label.config(text="¡Organización finalizada!")
+            return
+        archivo_path = lista_archivos[i-1]
+        archivo = os.path.basename(archivo_path)
+        _, extension = os.path.splitext(archivo)
+        extension = extension.lower()
+        carpeta_categoria = "Otros"
+        for categoria, lista_ext in extensiones.items():
+            if extension in lista_ext:
+                carpeta_categoria = categoria
+                break
+        destino = os.path.join(carpeta_destino, carpeta_categoria)
+        os.makedirs(destino, exist_ok=True)
+        if not dry_run:
+            try:
+                shutil.move(str(archivo_path), os.path.join(destino, archivo))
+            except Exception as e:
+                print(f"Error moviendo {archivo_path}: {e}")
+        else:
+            print(f"[SIMULADO] {archivo} → {destino}")
+        progreso = int(i * 100 / total)
+        progress_var.set(progreso)
+        status_label.config(text=f"Procesando: {archivo} ({i}/{total})")
+        if i < total:
+            root.after(int(delay * 1000), lambda: procesar_archivo(i+1))
+        else:
+            root.after(0, lambda: status_label.config(text="¡Organización finalizada!"))
+            progress_var.set(100)
 
-#Ese bloque de abajo (if os.path.isfile(ruta_archivo)) revisa si algo es un archivo, obtiene su 
-#extensión y la normaliza en minúscula para que sea 
-# más fácil clasificarlo.
-
-        if os.path.isfile(ruta_archivo):
-            _, extension = os.path.splitext(archivo) 
-            extension = extension.lower() 
-
-            # Buscar a qué categoría pertenece
-            carpeta_categoria = "Otros"
-            for categoria, lista_ext in extensiones.items():
-                if extension in lista_ext:
-                    carpeta_categoria = categoria
-                    break
-
-            # Crear la carpeta destino si no existe
-            destino = os.path.join(carpeta_destino, carpeta_categoria)
-            os.makedirs(destino, exist_ok=True)
-
-            # Mover o simular
-            if not dry_run:
-                shutil.move(ruta_archivo, os.path.join(destino, archivo))
-            else:
-                print(f"[SIMULADO] {archivo} → {destino}")
+    root.after(0, lambda: procesar_archivo(1))
 
 """
 seleccionar_origen: abre un diálogo para seleccionar la carpeta origen
@@ -125,13 +126,21 @@ def iniciar_organizacion():
     if not archivos:
         messagebox.showinfo("Info", "No se encontraron archivos para organizar")
         return
-    organizar_archivos(archivos, destino_var.get(), dry_run_var.get(), progress_var, status_label)
-    messagebox.showinfo("Listo", "¡Organización finalizada!")
+    progress_var.set(0)
+    status_label.config(text="Iniciando organización...")
+    root.update()
+
+    def run_organizacion():
+        organizar_archivos(archivos, destino_var.get(), dry_run_var.get())
+        # Mostrar mensaje al finalizar desde el hilo principal
+        root.after(int(min(5000, len(archivos)*350)), lambda: messagebox.showinfo("Listo", "¡Organización finalizada!"))
+
+    threading.Thread(target=run_organizacion, daemon=True).start()
 
 # --- GUI ---
 root = tk.Tk()
 root.title("Organizador de Archivos")
-root.geometry("500x500")
+root.geometry("500x600")
 
 origen_var = tk.StringVar()
 destino_var = tk.StringVar()
@@ -170,3 +179,4 @@ tk.Button(root, text="Organizar Archivos", command=iniciar_organizacion, bg="lig
 
 root.mainloop()
 # --- Corrección de la lógica de organización de archivos ---
+
