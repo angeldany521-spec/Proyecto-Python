@@ -4,6 +4,11 @@ from pathlib import Path
 import shutil
 import os
 
+"""
+Este script organiza archivos en una carpeta destino basada en su tipo.
+Permite seleccionar una carpeta origen y destino, y ofrece opciones de simulación
+(dry-run) y recursividad.
+"""
 # Reglas simples: extensión → carpeta
 RULES = {
     "jpg": "Fotos",
@@ -21,6 +26,12 @@ RULES = {
     "rar": "Comprimidos",
 }
 
+"""
+funciones principales:
+- scan_files: escanea los archivos en la carpeta origen (y subcarpetas si es recursivo)
+esto para obtener una lista de archivos a organizar.
+"""
+
 def scan_files(origen, recursive):
     archivos = []
     origen = Path(origen)
@@ -32,6 +43,12 @@ def scan_files(origen, recursive):
         archivos = [p for p in origen.iterdir() if p.is_file()]
     return archivos
 
+"""
+- organizar_archivos: mueve los archivos a las carpetas correspondientes en la carpeta destino
+según las reglas definidas. Si dry_run es True, solo simula la acción sin mover archivos.
+Adicionalmente, actualiza una barra de progreso y un label de estado en la GUI.
+"""
+
 def organizar_archivos(carpeta_origen, carpeta_destino, dry_run=False):
     extensiones = {
         "Documentos": [".pdf", ".docx", ".txt"],
@@ -39,14 +56,18 @@ def organizar_archivos(carpeta_origen, carpeta_destino, dry_run=False):
         "Videos": [".mp4", ".avi"],
         "Música": [".mp3", ".wav"],
         "Comprimidos": [".zip", ".rar"],
-    }
+    } 
 
     for archivo in os.listdir(carpeta_origen):
-        ruta_archivo = os.path.join(carpeta_origen, archivo)
+        ruta_archivo = os.path.join(carpeta_origen, archivo) 
+
+#Ese bloque de abajo (if os.path.isfile(ruta_archivo)) revisa si algo es un archivo, obtiene su 
+#extensión y la normaliza en minúscula para que sea 
+# más fácil clasificarlo.
 
         if os.path.isfile(ruta_archivo):
-            _, extension = os.path.splitext(archivo)
-            extension = extension.lower()
+            _, extension = os.path.splitext(archivo) 
+            extension = extension.lower() 
 
             # Buscar a qué categoría pertenece
             carpeta_categoria = "Otros"
@@ -65,6 +86,10 @@ def organizar_archivos(carpeta_origen, carpeta_destino, dry_run=False):
             else:
                 print(f"[SIMULADO] {archivo} → {destino}")
 
+"""
+seleccionar_origen: abre un diálogo para seleccionar la carpeta origen
+seleccionar_destino: abre un diálogo para seleccionar la carpeta destino
+"""
 
 def seleccionar_origen():
     path = filedialog.askdirectory()
@@ -75,6 +100,12 @@ def seleccionar_destino():
     path = filedialog.askdirectory()
     if path:
         destino_var.set(path)
+
+"""
+previsualizar: escanea y muestra los archivos encontrados en la lista de la GUI
+iniciar_organizacion: inicia el proceso de organización de archivos al hacer clic en el botón
+"Organizar Archivos que aparece en la GUI".
+"""
 
 def previsualizar():
     if not origen_var.get():
@@ -138,3 +169,4 @@ status_label.pack()
 tk.Button(root, text="Organizar Archivos", command=iniciar_organizacion, bg="lightgreen").pack(pady=15)
 
 root.mainloop()
+# --- Corrección de la lógica de organización de archivos ---
