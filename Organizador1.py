@@ -12,7 +12,21 @@ Este script organiza archivos en una carpeta destino basada en su tipo.
 Permite seleccionar una carpeta origen y destino, y ofrece opciones de simulación
 (dry-run) y recursividad.
 """
-
+RULES = {
+    "jpg": "Fotos",
+    "jpeg": "Fotos",
+    "png": "Fotos",
+    "gif": "Fotos",
+    "pdf": "Documentos",
+    "docx": "Documentos",
+    "txt": "Textos",
+    "mp3": "Música",
+    "wav": "Música",
+    "mp4": "Videos",
+    "mkv": "Videos",
+    "zip": "Comprimidos",
+    "rar": "Comprimidos",
+}
 
 """
 funciones principales:
