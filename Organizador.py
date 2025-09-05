@@ -5,13 +5,28 @@ import time
 import shutil
 import os
 import threading
+import pywhatkit as kit 
 
 """
 Este script organiza archivos en una carpeta destino basada en su tipo.
 Permite seleccionar una carpeta origen y destino, y ofrece opciones de simulación
 (dry-run) y recursividad.
 """
-
+RULES = {
+    "jpg": "Fotos",
+    "jpeg": "Fotos",
+    "png": "Fotos",
+    "gif": "Fotos",
+    "pdf": "Documentos",
+    "docx": "Documentos",
+    "txt": "Textos",
+    "mp3": "Música",
+    "wav": "Música",
+    "mp4": "Videos",
+    "mkv": "Videos",
+    "zip": "Comprimidos",
+    "rar": "Comprimidos",
+}
 
 """
 funciones principales:
@@ -67,11 +82,19 @@ def organizar_archivos(lista_archivos, carpeta_destino, dry_run=False):
             if extension in lista_ext:
                 carpeta_categoria = categoria
                 break
-        destino = os.path.join(carpeta_destino, carpeta_categoria)
-        os.makedirs(destino, exist_ok=True)
+        destino_carpeta = os.path.join(carpeta_destino, carpeta_categoria)
+        os.makedirs(destino_carpeta, exist_ok=True)
+        destino = os.path.join(destino_carpeta, archivo)
         if not dry_run:
             try:
-                shutil.move(str(archivo_path), os.path.join(destino, archivo))
+                # Si el archivo ya existe en destino, renombrar para evitar sobrescribir
+                destino_final = destino
+                count = 1
+                while os.path.exists(destino_final):
+                    nombre, ext = os.path.splitext(archivo)
+                    destino_final = os.path.join(destino_carpeta, f"{nombre}_{count}{ext}")
+                    count += 1
+                shutil.move(str(archivo_path), destino_final)
             except Exception as e:
                 print(f"Error moviendo {archivo_path}: {e}")
         else:
@@ -130,13 +153,28 @@ def iniciar_organizacion():
     status_label.config(text="Iniciando organización...")
     root.update()
 
+
     def run_organizacion():
         organizar_archivos(archivos, destino_var.get(), dry_run_var.get())
-        # Mostrar mensaje al finalizar desde el hilo principal
-        root.after(int(min(5000, len(archivos)*350)), lambda: messagebox.showinfo("Listo", "¡Organización finalizada!"))
+        # Mostrar mensaje y enviar WhatsApp al finalizar desde el hilo principal
+        root.after(int(min(5000, len(archivos)*350)), lambda: (
+            messagebox.showinfo("Listo", "¡Organización finalizada!"),
+            enviar_whats_confirmacion("18099154130", "¡Organización finalizada!")
+        ))
 
     threading.Thread(target=run_organizacion, daemon=True).start()
 
+
+
+# Función para enviar WhatsApp correctamente
+def enviar_whats_confirmacion(numero: str, mensaje: str):
+    try:
+        kit.sendwhatmsg_instantly(f"+{numero}", mensaje)
+    except Exception as e:
+        print(f"Error enviando WhatsAppy: {e}")
+
+
+    
 # --- GUI ---
 root = tk.Tk()
 root.title("Organizador de Archivos")
