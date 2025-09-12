@@ -24,13 +24,12 @@ Requisitos para correr el programa
   - `send2trash` (opcional)
  
 Pasos:
--Crea un entorno virtual(Opcional)
--Ejecutar el programa: python organizador.py
--Selecciona la carpeta de origen (donde están los archivos).
--Selecciona la carpeta de destino (donde se organizarán).
--Marca o desmarca Dry-run según quieras simular o mover realmente.
--Haz clic en Organizar Archivos.
-  
+  1.Crea un entorno virtual(Opcional)
+  2.Ejecutar el programa: python organizador.py
+  3.Selecciona la carpeta de origen (donde están los archivos).
+  4.Selecciona la carpeta de destino (donde se organizarán).
+  5.Marca o desmarca Dry-run según quieras simular o mover realmente.
+  6.Haz clic en Organizar Archivos.
   
 
 
