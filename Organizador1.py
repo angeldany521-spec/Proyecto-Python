@@ -194,5 +194,6 @@ status_label.pack()
 tk.Button(root, text="Organizar Archivos", command=iniciar_organizacion, bg="lightgreen").pack(pady=15)
 
 root.mainloop()
-# --- Corrección de la lógica de organización de archivos ---
+
+
 
